@@ -1,4 +1,7 @@
 <?php
+
+include 'includes/db.php';
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -10,9 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateText?key=$apiKey";
 
     $data = [
-        "prompt" => [
-            "text" => $pergunta
-        ],
+        "prompt" => ["text" => $pergunta],
         "temperature" => 0.7,
         "maxOutputTokens" => 256,
         "candidateCount" => 1
@@ -42,6 +43,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     echo "</pre>";
 
     $textoIA = $resultado["candidates"][0]["content"][0]["text"] ?? "Erro ao obter resposta.";
+
+    
+    $stmt = $conn -> prepare("INSERT INTO historico(pergunta,resposta) VALUES (?, ?)");
+    $stmt -> bind_param("ss", $pergunta, $textoIA);
+    $stmt->execute();
+    $stmt -> close();
+
 
     echo "<h2>Pergunta:</h2><p>$pergunta</p>";
     echo "<h2>Resposta do Gemini:</h2><p>$textoIA</p>";

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>AcadIA - Chat Acadêmico</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="assets/style.css">
+
 </head>
 <body>
   <h1>AcadIA 🤖</h1>

@@ -7,7 +7,7 @@
 
 </head>
 <body>
-  <h1>AcadIA 🤖</h1>
+  <h1>Q&A Bot</h1>
   <form action="ia.php" method="POST">
     <label for="pergunta">Digite sua dúvida:</label>
     <textarea name="pergunta" id="pergunta" rows="5" required></textarea>

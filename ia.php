@@ -1,11 +1,21 @@
 <?php
 
+require __DIR__ . '/vendor/autoload.php';
+
+
+
 include 'includes/db.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$apiKey = "AIzaSyB4bfh8FbUGIcUmBc0L3sZAkDagpl_z32o";
+use Dotenv\Dotenv;
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+
+
+$apiKey = $_ENV["apiKey"];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $pergunta = $_POST["pergunta"];
@@ -42,11 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $resultado = json_decode($resposta, true);
 
-    echo "<h2>JSON retornado pelo Gemini:</h2>";
-    echo "<pre>";
-    print_r($resultado);
-    echo "</pre>";
-
+    
    $textoIA = $resultado["candidates"][0]["content"]["parts"][0]["text"] 
            ?? "Erro ao obter resposta.";
 

@@ -73,7 +73,7 @@ Copiar código
 php tests/teste_db.php
 Teste o envio de perguntas via formulário e confira o armazenamento no banco.
 
-⚙️ Observações Técnicas
+## ⚙️ Observações Técnicas
 Requisições à API Gemini são feitas via cURL com JSON.
 
 Erros são exibidos para depuração.
@@ -82,7 +82,7 @@ Perguntas e respostas são salvas usando prepared statements, evitando SQL Injec
 
 Estrutura modular facilita manutenção e expansão do projeto.
 
-🔄 Fluxo do Sistema
+## 🔄 Fluxo do Sistema
 mermaid
 Copiar código
 flowchart LR
@@ -103,3 +103,4 @@ ia.php envia requisição à API Gemini usando chave do .env
 Resposta da IA é recebida e salva no banco (historico)
 
 Resposta é exibida ao usuário
+

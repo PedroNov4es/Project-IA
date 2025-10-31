@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>AcadIA - Chat Acadêmico</title>
+  <title>Q&A Bot</title>
   <link rel="stylesheet" href="assets/style.css">
 
 </head>

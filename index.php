@@ -1,3 +1,4 @@
+<!--Página inicial onde o usuário escreve sua dúvida e a envia para a inteligência artificial(GEMINI).-->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

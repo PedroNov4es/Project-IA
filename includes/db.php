@@ -1,4 +1,7 @@
 <?php
+
+ //Este arquivo faz a conexão com o banco de dados e deixa pronta para uso no sistema.
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;

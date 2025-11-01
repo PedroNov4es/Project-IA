@@ -1,3 +1,5 @@
+# Evita que arquivos importantes (ex: chave da API do Gemini) sejam enviados para o GitHub.
+
 .env
 /vendor/
 /tests/

@@ -1,40 +1,30 @@
 <?php
-/*
-Parte principal do projeto. 
-É responsável por processar toda a lógica principal: recebe a pergunta enviada pelo usuário, envia para a API Gemini, 
-recebe a resposta gerada pela IA, registra a pergunta e a resposta no banco de dados para manter o histórico e, por fim
-, exibe o resultado de forma organizada na tela.
-*/
-
-
-// Carrega as dependências instaladas pelo Composer
-require __DIR__ . '/vendor/autoload.php';
-
-// Conecta ao banco de dados
-include 'includes/db.php';
-
-// Mostra todos os erros (útil para depuração)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Carrega variáveis do arquivo .env (como a chave da API)
 use Dotenv\Dotenv;
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
 
-// Obtém a chave da API do arquivo .env
-$apiKey = $_ENV["apiKey"];
+// Inicializa variáveis que vão armazenar a resposta da IA e a pergunta do usuário.
+//elas precisam ser inicializadas fora do bloco POST para que possam ser usadas na página mesmo antes do envio.
+$textoIA = '';
+$pergunta = '';
 
-// Executa o código apenas se o formulário for enviado (método POST)
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+// Checa se o formulário foi enviado via POST e se há uma pergunta.
+if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST["pergunta"])) {
 
-    // Pega a pergunta enviada pelo usuário
+    // Recebe a pergunta enviada pelo usuário
     $pergunta = $_POST["pergunta"];
 
-    // URL da API do Gemini com a chave de acesso
+    // Inclui autoload do Composer e a conexão com o banco de dados
+    // IMPORTANTE: o db.php já carrega o .env, não recarregamos aqui
+    require_once __DIR__ . '/vendor/autoload.php';
+    include_once 'includes/db.php';
+
+    // Chave da API Gemini carregada do arquivo .env
+    $apiKey = $_ENV["API_KEY"];
+
+    // URL da API Gemini 2.5 Pro com chave embutida na query string
     $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=$apiKey";
 
-    // Monta o corpo da requisição (conteúdo a ser enviado à IA)
+    // Monta os dados da requisição para a API
+    // A API espera um array "contents" com "parts", cada part é um bloco de texto
     $data = [
         "contents" => [
             [
@@ -44,42 +34,80 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ]
         ]
     ];
-    
-    // Inicia o cURL para fazer a requisição HTTP
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Retorna a resposta como string
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]); // Envia como JSON
-    curl_setopt($ch, CURLOPT_POST, true); // Define o método como POST
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data)); // Adiciona o corpo da requisição
 
-    // Executa a requisição e guarda a resposta
+    // Inicializa cURL para fazer a requisição HTTP
+    curl_setopt_array($ch = curl_init($url), [
+        CURLOPT_RETURNTRANSFER => true,            // Retorna a resposta como string
+        CURLOPT_HTTPHEADER     => ["Content-Type: application/json"], // Cabeçalho JSON
+        CURLOPT_POST           => true,            // Método POST
+        CURLOPT_POSTFIELDS     => json_encode($data) // Converte dados para JSON
+    ]);
+
+    // Executa a requisição
     $resposta = curl_exec($ch);
 
-    // Verifica se ocorreu erro na requisição
+    // Checa se houve erro no cURL
     if (curl_errno($ch)) {
-        echo 'Erro no cURL: ' . curl_error($ch);
-        curl_close($ch);
-        exit;
+        $textoIA = 'Erro no cURL: ' . curl_error($ch);
+    } else {
+        // Decodifica a resposta JSON da API
+        $resultado = json_decode($resposta, true);
+
+        // Checa se houve erro na decodificação do JSON
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // IMPORTANTE: salvar a resposta crua ajuda a diagnosticar problemas de API ou formatação
+            $textoIA = "Erro ao decodificar JSON: " . json_last_error_msg() . "\nResposta crua: $resposta";
+        } else {
+            // Checa se a API retornou erro
+            if (isset($resultado['error'])) {
+                $textoIA = "Erro da API: " . json_encode($resultado['error'], JSON_PRETTY_PRINT);
+            }
+            // Verifica se a resposta esperada existe no JSON
+            elseif (isset($resultado['candidates'][0]['content']['parts'][0]['text'])) {
+                $textoIA = $resultado['candidates'][0]['content']['parts'][0]['text'];
+
+                // ========================
+                // BLOCO DE CONVERSÃO DE MARKDOWN PARA HTML
+                // ========================
+                $textoIA = preg_replace('/^### (.+)$/m', '<h3>$1</h3>', $textoIA);
+                $textoIA = preg_replace('/^## (.+)$/m', '<h2>$1</h2>', $textoIA);
+                $textoIA = preg_replace('/^# (.+)$/m', '<h1>$1</h1>', $textoIA);
+                $textoIA = preg_replace('/^- (.+)$/m', '<li>$1</li>', $textoIA);
+
+                // Se houver listas, adiciona <ul> ao redor
+                if (strpos($textoIA, '<li>') !== false) {
+                    $textoIA = "<ul>$textoIA</ul>";
+                }
+
+                // Agrupa blocos de texto separados por linhas duplas em <p>
+                $textoIA = "<div class='resposta-ia'>" .
+                    "<p>" . preg_replace("/\n{2,}/", "</p><p>", $textoIA) . "</p>" .
+                    "</div>";
+            } else {
+                // Caso a resposta da API não esteja no formato esperado
+                $textoIA = "Resposta inesperada da API:\n" . json_encode($resultado, JSON_PRETTY_PRINT);
+            }
+        }
     }
 
-    curl_close($ch); // Encerra a sessão cURL
+    // Fecha a conexão cURL
+    curl_close($ch);
 
-    // Converte a resposta JSON em array PHP
-    $resultado = json_decode($resposta, true);
-
-    // Pega o texto gerado pela IA ou mostra mensagem de erro
-    $textoIA = $resultado["candidates"][0]["content"]["parts"][0]["text"] 
-           ?? "Erro ao obter resposta.";
-
-    // Insere a pergunta e resposta no banco de dados
-    $stmt = $conn->prepare("INSERT INTO historico(pergunta, resposta) VALUES (?, ?)");
-    $stmt->bind_param("ss", $pergunta, $textoIA);
-    $stmt->execute();
-    $stmt->close();
-
-    // Exibe a pergunta e a resposta na tela
-    echo "<h2>Pergunta:</h2><p>$pergunta</p>";
-    echo "<h2>Resposta do Gemini:</h2><p>$textoIA</p>";
-    echo '<br><a href="index.php">Voltar</a>';
+    // ========================
+    // BLOCO DE SALVAMENTO NO BANCO DE DADOS
+    // ========================
+    if (!empty($textoIA)) {
+        if ($conn && $conn->connect_errno === 0) {
+            // Cria o statement preparado para evitar SQL Injection
+            $stmt = $conn->prepare("INSERT INTO historico (pergunta, resposta) VALUES (?, ?)");
+            if ($stmt) {
+                // Vincula parâmetros
+                $stmt->bind_param("ss", $pergunta, $textoIA);
+                // Executa e fecha statement
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+    }
 }
 ?>

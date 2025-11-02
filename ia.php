@@ -1,10 +1,5 @@
 <?php
-/*
-Parte principal do projeto. 
-É responsável por processar toda a lógica principal: recebe a pergunta enviada pelo usuário, envia para a API Gemini, 
-recebe a resposta gerada pela IA, registra a pergunta e a resposta no banco de dados para manter o histórico e, por fim
-, exibe o resultado de forma organizada na tela.
-*/
+//Parte principal do projeto, processa perguntas do usuário, envia para a API, armazena histórico e exibe respostas.
 
 
 // Carrega as dependências instaladas pelo Composer

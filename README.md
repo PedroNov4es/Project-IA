@@ -1,7 +1,7 @@
-# 🎓 AcadIA - Chat Acadêmico
+# 🎓 Q&A Bot - Gemini
 
 ## 📝 Descrição
-AcadIA é uma aplicação web que permite aos usuários enviar perguntas e receber respostas automáticas de uma IA (Gemini).  
+Q&A Bot é uma aplicação web que permite aos usuários enviar perguntas e receber respostas automáticas de uma IA (Gemini).  
 Todas as perguntas e respostas são armazenadas em um **banco de dados MySQL**, permitindo consultar o histórico e acompanhar interações passadas.
 
 O projeto foi desenvolvido em **PHP**, utilizando **Composer** para gerenciamento de dependências, seguindo boas práticas de modularização e segurança (variáveis sensíveis em `.env`).

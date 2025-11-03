@@ -14,8 +14,8 @@ include 'ia.php';
 <body>
   <div class="app-container">
     <header>
-      <h1>💬 Q&A Bot - Gemini</h1>
-      <p>Pergunte o que quiser! A IA responderá logo abaixo 👇</p>
+      <h1>Q&A Bot - Gemini</h1>
+      <p>Pergunte o que quiser! A IA responderá logo abaixo </p>
     </header>
 
     <main>
@@ -36,14 +36,14 @@ include 'ia.php';
       <!-- Mostra a resposta da IA somente se houver conteúdo -->
       <?php if (!empty($textoIA)): ?>
       <div class="resposta-container">
-        <h2>🤖 Resposta da IA:</h2>
+        <h2>Resposta da IA:</h2>
         <?= $textoIA // Aqui já vem formatada em HTML pelo ia.php, incluindo Markdown convertido ?>
       </div>
       <?php endif; ?>
     </main>
 
     <footer>
-      <p>Desenvolvido por Pedro Novaes © 2025</p>
+      <p>Desenvolvido por BitMasters © 2025</p>
     </footer>
   </div>
 </body>
